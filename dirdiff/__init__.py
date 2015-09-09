@@ -10,29 +10,58 @@
 import argparse
 import filecmp
 import os
-import os.path
-import sys
+import time
 
-def diff(basepath, path1, path2):
+def commonPart(sa, sb):
+    """ returns the longest common substring from the beginning of sa and sb """
+    def _iter():
+        for a, b in zip(sa, sb):
+            if a == b:
+                yield a
+            else:
+                return
+
+    return ''.join(_iter())
+
+def doStripCommonPaths(abs1, abs2):
+    commonDir = commonPart(abs1, abs2)
+    if len(commonDir) > 0:
+        abs1 = abs1[len(commonDir):]
+        abs2 = abs2[len(commonDir):]
+    return (abs1, abs2)
+
+def diff(stripCommonPaths, basepath, path1, path2):
     # STEP 1: iterate on all path1 paths (directories and filenames) and compare with path2
     # - report if path2 does not exist
     # - when path is a file, report if path1 differ from path2
     common_paths = []
+    dateFormat = '%d.%m.%Y %H:%M'
     for path in os.listdir(path1):
         abs1 = os.path.join(path1, path)
         abs2 = os.path.join(path2, path)
         relative = abs1[len(basepath)+1:]
         if not os.path.exists(abs2):
-            print "Only in %s: %s" % (os.path.dirname(abs1), path)
+            if stripCommonPaths:
+                abs1, abs2 = doStripCommonPaths(abs1, abs2)
+            print "[-] %s" % (abs1)
             continue
         common_paths.append(relative)
 
         if os.path.isfile(abs1):
             r = filecmp.cmp(abs1, abs2)
             if not r:
-                print "Files %s and %s differ" % (abs1, abs2)
+                mtime1 = os.path.getmtime(abs1)
+                mtime2 = os.path.getmtime(abs2)
+                time1 = time.strftime(dateFormat, time.localtime(mtime1))
+                time2 = time.strftime(dateFormat, time.localtime(mtime2))
+                if stripCommonPaths:
+                    abs1, abs2 = doStripCommonPaths(abs1, abs2)
+                if mtime1 > mtime2:
+                    print "[N] %s (%s) vs %s (%s)" % (abs1, time1, abs2, time2)
+                else:
+                    print "[O] %s (%s) vs %s (%s)" % (abs1, time1, abs2, time2)
         elif os.path.isdir(abs1):
-            paths = diff(basepath, abs1, abs2)
+            paths = diff(stripCommonPaths, basepath, abs1, abs2)
             common_paths.extend(paths)
 
     # STEP 2: the other way: iterate on all path2 paths and
@@ -42,7 +71,9 @@ def diff(basepath, path1, path2):
         abs2 = os.path.join(path2, path)
         relative = abs2[len(basepath)+1:]
         if not os.path.exists(abs1):
-            print "Only in %s: %s" % (os.path.dirname(abs2), path)
+            if stripCommonPaths:
+                abs1, abs2 = doStripCommonPaths(abs1, abs2)
+            print "[+] %s" % (abs2)
 
     return common_paths
 
@@ -52,17 +83,23 @@ def parseArguments():
     parser.add_argument('action', action='store', metavar='dirdiff', nargs=1, help='Action name')
     parser.add_argument('dir1', action='store', nargs=1, help='First directory')
     parser.add_argument('dir2', action='store', nargs=1, help='Second directory')
-    parser.add_argument('-q', action='store_true', default=True, required=False, help='Do not show differences in files, just say they are different')
+    parser.add_argument('--full-paths', action='store_true', default=False, required=False, help='Do not strip common paths in results')
+    #parser.add_argument('-q', action='store_true', default=False, required=False, help='Do not show differences in files, just say they are different')
+    parser.add_argument('-r', action='store_true', default=True, required=False, help='Reverse order of comparison')
+    #parser.add_argument('-w', action='store_true', default=True, required=False, help='Ignore all whitespace (set by default, slower!)')
     arguments = parser.parse_args()
     return arguments
 
 def run():
     arguments = parseArguments()
-    paths = [arguments.dir1[0], arguments.dir2[0]]
+    if arguments.r:
+        paths = [arguments.dir2[0], arguments.dir1[0]]
+    else:
+        paths = [arguments.dir1[0], arguments.dir2[0]]
     for path in paths:
         if not os.path.exists(path):
             print "%s does not exist!" % path
             exit()
 
     basepath = os.path.commonprefix(paths).rstrip('/')
-    diff(basepath, *paths)
+    diff(not arguments.full_paths, basepath, *paths)
