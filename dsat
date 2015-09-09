@@ -29,6 +29,10 @@ def actionHelp():
             print "  " + actionName[0].lower() + actionName[1:]
 
 
+def actionSvnmod():
+    import svnmod
+    svnmod.run()
+
 
 def errorActionNotFound(action):
     """
