@@ -1,6 +1,7 @@
 import dsatutil
 import os
 
+
 def parseArguments():
     """
     Parses arguments
@@ -12,6 +13,10 @@ def parseArguments():
     parser.add_argument('directory', action='store', default='.', nargs='?', help='Optional directory name (defaults to .)')
     return parser.parse_args()
 
+
 def run():
+    """
+    Runs the action
+    """
     arguments = parseArguments()
     os.system('/usr/bin/env svn status ' + arguments.directory + ' | /usr/bin/env grep [MADC\\?]');
