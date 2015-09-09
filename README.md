@@ -6,6 +6,8 @@ The tool is not only meant for system administrators but also for web programmer
 
 Complete list of options can be found by running either `dsat -h` or `dsat --help` or `dsat help`.
 
+You need to `chmod +x dsat` obviously.
+
 ## Planned functions
 
 ### File system
