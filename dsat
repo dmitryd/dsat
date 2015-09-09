@@ -9,6 +9,10 @@
 import inspect
 import sys
 
+def actionDirdiff():
+    import dirdiff
+    dirdiff.run()
+
 def actionHelp():
     """
     Shows help.
