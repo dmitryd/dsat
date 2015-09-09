@@ -13,6 +13,12 @@ def actionDirdiff():
     import dirdiff
     dirdiff.run()
 
+
+def actionGffp():
+    import gffp
+    gffp.run()
+
+
 def actionHelp():
     """
     Shows help.
