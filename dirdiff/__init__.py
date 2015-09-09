@@ -92,7 +92,9 @@ def parseArguments():
     """
     Parses arguments
     """
-    parser = dsatutil.ArgumentParser(epilog='M|Result is a list of files prefixed as follows:\n' +
+    parser = dsatutil.ArgumentParser(
+        description='Compares directories recursively and outputs file differences',
+        epilog='M|Result is a list of files prefixed as follows:\n' +
             '  [N] File in dir2 (or in dir1 if -r) is newer than the file in the other directory\n' +
             '  [+] File only exists in dir2 (or dir1 if -r)\n' +
             '  [-] File only exists in dir1 (or dir2 if -r)\n' +
