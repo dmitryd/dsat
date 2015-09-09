@@ -6,7 +6,32 @@
 # @see https://github.com/dmitryd/dsat/
 #
 
+import inspect
 import sys
+
+def actionHelp():
+    """
+    Shows help.
+    """
+    print "Usage: dsat action [action-options ...]"
+    print ""
+    print "For help on each action options, use dsat action -h"
+    print ""
+    print "Valid actions:"
+    functionNames = [ name for name,obj in inspect.getmembers(sys.modules[__name__]) if inspect.isfunction(obj) ]
+    for functionName in functionNames:
+        if functionName[0:6] == 'action':
+            actionName = functionName[6:]
+            print "  " + actionName[0].lower() + actionName[1:]
+
+
+
+def errorActionNotFound(action):
+    """
+    Acts when the action is not found
+    """
+    print "Error: Action %s not found" % action
+    print "dsat -h for help"
 
 def checkVersionAndExit():
     """
@@ -16,4 +41,22 @@ def checkVersionAndExit():
         print 'Use python 2.7, with dsat, please.'
         exit()
 
+
+def parseAction():
+    """
+    Parses arguments and returns them or shows usage and dies if no argument found.
+    """
+    if len(sys.argv) >= 2:
+        action = sys.argv[1]
+    else:
+        action = 'help'
+    return action
+
 checkVersionAndExit()
+action = parseAction()
+actionMethod = 'action' + action[0].upper() + action[1:];
+
+try:
+    locals()[actionMethod]()
+except Exception:
+    errorActionNotFound(action)
