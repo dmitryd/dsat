@@ -57,6 +57,6 @@ action = parseAction()
 actionMethod = 'action' + action[0].upper() + action[1:];
 
 try:
-    locals()[actionMethod]()
-except Exception:
+    eval(actionMethod + "()")
+except NameError:
     errorActionNotFound(action)
